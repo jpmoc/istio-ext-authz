@@ -1,0 +1,12 @@
+apiVersion: skaffold/v2beta12
+kind: Config
+metadata:
+  name: test-envoy-ext-authz
+# build:
+#   artifacts:
+#   - image: docker.io/emayssatware/test-envoy-ext-authz
+deploy:
+  kustomize:
+    defaultNamespace: demo1
+    paths:
+    - in/kustomize

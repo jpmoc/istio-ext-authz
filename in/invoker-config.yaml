@@ -1,0 +1,169 @@
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: invoker-allow
+spec:
+  workloadSelector:
+    labels:
+      app: invoker
+  configPatches:
+  - applyTo: HTTP_ROUTE
+    match:
+      context: SIDECAR_INBOUND
+      routeConfiguration:
+        vhost:
+          name: "inbound|http|8002"
+    patch:
+      operation: INSERT_FIRST
+      value:
+        name: "allow"
+        match:
+          path: "/allow"
+        route:
+          cluster: InboundPassthroughClusterIpv4
+          timeout: 0s
+          maxStreamDuration:
+            maxStreamDuration: 0s
+        typed_per_filter_config:
+          envoy.filters.http.ext_authz:
+            '@type': "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
+            check_settings:
+              context_extensions:
+                namespace_object: "object1"
+                namespace_service: "api"
+                service_path: "/allow"
+                relation: "relation1"
+                authz_result: "allow"
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: invoker
+spec:
+  selector:
+    matchLabels:
+      service.istio.io/canonical-name: invoker
+  action: CUSTOM
+  provider:
+    name: authz-demo1
+  rules:
+  - to:
+    - operation:
+        paths: 
+        - "/deny"
+        - "/allow"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: invoker-deny
+spec:
+  workloadSelector:
+    labels:
+      app: invoker
+  configPatches:
+  - applyTo: HTTP_ROUTE
+    match:
+      context: SIDECAR_INBOUND
+      routeConfiguration:
+        vhost:
+          name: "inbound|http|8002"
+    patch:
+      operation: INSERT_FIRST
+      value:
+        name: "deny"
+        match:
+          path: "/deny"
+        route:
+          cluster: InboundPassthroughClusterIpv4
+          timeout: 0s
+          maxStreamDuration:
+            maxStreamDuration: 0s
+        typed_per_filter_config:
+          envoy.filters.http.ext_authz:
+            '@type': "type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthzPerRoute"
+            check_settings:
+              context_extensions:
+                namespace_object: "object2"
+                namespace_service: "api"
+                service_path: "/deny"
+                relation: "relation2"
+                authz_result: "deny"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: invoker
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: invoker-body
+spec:
+  workloadSelector:
+    labels:
+      service.istio.io/canonical-name: invoker
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_INBOUND
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+            subFilter:
+              name: "envoy.filters.http.ext_authz"
+    patch:
+      operation: MERGE
+      value:
+        name: envoy.filters.http.ext_authz
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+          with_request_body:
+            max_request_bytes: 65536
+            allow_partial_message: false
+            # allow_partial_message: true
+            pack_as_bytes: false
+            # pack_as_bytes: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: invoker
+  labels:
+    app: invoker
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 8002
+      targetPort: 8002
+  selector:
+    app: invoker
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: invoker
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - invoker
+  http:
+  - route:
+    - destination:
+        host: invoker
+        port:
+          number: 8002

@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- authz-pod.yaml
+- authz-service.yaml
+- curl-pod.yaml
+- envoy-pod.yaml
+- envoy-service.yaml
+- invoker-pod.yaml
+- invoker-service.yaml
+
+configMapGenerator:
+- name: manifest-config
+  files:
+  - manifest.yaml

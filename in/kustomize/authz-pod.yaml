@@ -1,0 +1,16 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: authz
+  labels:
+    app: authz
+spec:
+  containers:
+    - name: authz
+      # image: docker.io/kettil/test-envoy-ext-authz:latest
+      image: docker.io/emayssatware/test-envoy-ext-authz:ab79426-dirty@sha256:74bf76b60413767059168f55142d7d7090d5b3237fab09b7b5b7ff92609d8763
+      env:
+        - name: GRPC_PORT
+          value: '9000'
+      ports:
+        - containerPort: 9000

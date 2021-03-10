@@ -1,0 +1,19 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: invoker
+  labels:
+    app: invoker
+spec:
+  containers:
+    - name: invoker
+      image: docker.io/jmalloc/echo-server
+      env:
+        - name: PORT
+          value: '8002'
+        - name: LOG_HTTP_BODY
+          value: 'true'
+      ports:
+        - name: http
+          containerPort: 8002
+          protocol: TCP

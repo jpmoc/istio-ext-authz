@@ -1,0 +1,23 @@
+name: test
+location: none.jar
+
+authorization:
+  extensions:
+    namespace_service: api
+
+paths:
+  /allow:
+    invoker: none
+    authorization:
+      extensions:
+        namespace_object: object1
+        relation: relation1
+        authz_result: allow
+
+  /deny:
+    invoker: none
+    authorization:
+      extensions:
+        namespace_object: object2
+        relation: relation2
+        authz_result: deny
