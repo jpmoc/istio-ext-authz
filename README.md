@@ -1,3 +1,14 @@
+# (optional) Preperation for demo
+
+Build the artificat, create a docker image, and publish it
+
+```
+./mvnw clean package
+docker build -t emayssatware/test-envoy-ext-authz:latest .
+docker login
+docker push emayssatware/test-envoy-ext-authz:latest
+```
+
 # Demo1
 
 ```
