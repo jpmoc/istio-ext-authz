@@ -11,11 +11,11 @@ build_artifact:
 	./mvnw clean package
 
 build_image:
-	docker build -t emayssatware/test-envoy-ext-authz:latest .
+	docker build -t emayssatware/istio-ext-authz:latest .
 	# skaffold build
 
 push_image:
-	docker push emayssatware/test-envoy-ext-authz:latest
+	docker push emayssatware/istio-ext-authz:latest
 	# skaffold build
 
 deploy:

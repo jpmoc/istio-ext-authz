@@ -60,9 +60,9 @@ public class TestEnvoyExtAuthzService implements Closeable {
                 String path = request.getAttributes().getRequest().getHttp().getPath();
 
                 if (path.equals("/deny")) {
-                    log.info("Path is /deny");
+                    log.info("Path is /deny.");
                 } else {
-                    log.info("Path is NOT /deny");
+                    log.info("Path is NOT /deny.");
                     String objectNamespace = request.getAttributes().getContextExtensionsOrThrow("namespace_object");
                     String serviceNamespace = request.getAttributes().getContextExtensionsOrThrow("namespace_service");
                     String servicePath = request.getAttributes().getContextExtensionsOrThrow("service_path");
